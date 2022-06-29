@@ -1,0 +1,104 @@
+Background:
+Genomics 10x is lovely enough to give their gene expression matrix data
+from performing RNA-seq on different types of Peripheral Blood Mononuclear Cells
+(PBMC) including their associated labels.
+The data should be located here:
+https://www.10xgenomics.com/support/single-cell-gene-expression/documentation/steps/sample-prep/fresh-frozen-human-peripheral-blood-mononuclear-cells-for-single-cell-rna-sequencing
+The goal of this code is twofold to show some level of compentency in
+using ML modules in python and its application to bioinformatics.
+
+There is a high level of abstraction in libraries developed in industry
+we will later attempt to build our own NN in python and C++
+with minimal library use. That being said, it is important to know the relevant
+ML libraries(openCV, keras, tensorflow, scikit-learn, etc) as its more than
+likely that they will be used in industry. However functionality of
+these libraries are broad which lends to some loss in memory/time
+optimization. Therefore its important to know how build our own libraries
+so we can control flow and implement novel ML/Linear Algebra Techniques.
+
+Secondly, we want to show that we can apply ML algorithms to biological data
+and interpret the output.
+
+Starting Point:
+
+In particular a great place to start is dimensionality
+reduction. The idea being that physical constraints limits the degrees of
+freedom wherein genes lie in. Since we assume that the genes can live
+in that subspace we can capture most of the data present in a gene
+expression matrix using principal component analysis. This is equivalent
+to finding the eigen-values/vectors of the covariant matrix of our normalized
+gene expression count(as it captures the most variance). We can then rewrite
+our gene expression matrix as a linear combination of our new eigenbasis
+and cut it off the number of eigenvectors up to two dimensions for the
+purpose of visualization. Indeed the eigenvalues represent the weight
+that their associated eigenvectors capture. As good practice its relevant
+to plot the eigenvalues from max to min to see how much each contributes
+in approximating our data. This will not be done here. TSNE is a similar
+dimension reduction techqniue and there is exhaustive literature on this.
+However the major difference between PCA and TSNE is that PCA assumes
+the underlying metric is euclidean. This implies that the "distances"
+between genes do not depend on where they "exist". TSNE assumes that
+the genes exist on a manifold and the procedure typically described
+is a self-consistent equation.
+
+AutoEncoders for Dimensionality Reduction:
+A novel idea was to compress data using Neural Networks(autoencoders).
+ Here we build a feed forward neural network with layers whose inputs decrease
+up until some central layer(a bottleneck). This portion of the architecture is
+dubbed as the encoder. From the bottleneck we add layers, with each additional
+layer increasing in the number of outputs up until we recover the number
+of input nodes, the portion is called the decoder. Autoencoders can
+be used to build generative models, for data compression, dimensionality
+reduction and for regression. In our case we are building an Autoencoder
+and a Variational Autoencoder(VAE) for dimensionality reduction to compare
+against PCA and TSNE. A variational autoencoder assumes there is some
+latent distribution within the bottleneck. Its important to note with
+respect to ML both are considered as unsupervised learning methods.
+
+Classification:
+Having our labels a for a given row in our gene expression matrix affords
+us the opportunity to build a neural network for classifcation.
+This approach can be extended to image classification using convolutional
+neural networks. A given pixel in an image can be decomposed into RGB values
+represented by an array with values between 0 and 255 representing the
+intensity of Red(R), Green(G), and Blue(B). For a given image of pixel
+width(W), height(H) it can be represented by a tensor of dimensions
+(W,H,3). We can perform different operations(convolutional filters)
+ on this tensor up to a layer that flattens the data which can then be
+fed into a neural network. We can the optimize the output against the labels.
+This is a form of supervised learning. We can typically reduce computational
+complexity by grayscaling the image and working with a 2D matrix.
+
+Because the gene expression matrix is N by M we can use a feed forward
+neural network for classifications. We will also incorporate a decision tree.
+decision trees are wonderful as they will only check if some criteria
+is met and classify items using this data. Building up the tree is difficult
+as we have to figure what the appropriate criterion actually are. Algorithms
+are shown in keras's documentation.
+
+This repository is broken up into a few pieces
+
+1. CreateData.py: preprocesses the data found in filtered_gene_bc_matrices.
+this preprocessing steps splits up the data between training and test sets.
+We want to see how ML compression methods compare to more determinsitic
+methods. For this reason we use PCA/TSNE figures are found in Figures.
+Moreover resultant data is stored in Data
+
+2. AutoEncoders.py: Creates a variational autoencoder and an autoencoder.
+Data is saved and figures are made
+
+3. CreateFigures.py: Allows us selectively graph different Figures.
+its a very simple script that will take in some number and plot the associated
+data.
+
+4. Classificaiton.py: Uses a FFN, and a decission for classification.
+
+5. perfrom_kf.py: Will take in some ML architecture and quantify 
+how it performs using cross-fold validation
+
+
+TODO:
+
+Employ CoDeap Neat to find best architecture for PBMC classification.
+
+Prune Decision Tree
